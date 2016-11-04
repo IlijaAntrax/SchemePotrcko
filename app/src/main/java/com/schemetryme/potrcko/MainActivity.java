@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity
                 MarkerOptions().position(LoadMyPosition()).title("start"));
         //googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
     }
+
     private LatLng LoadMyPosition() {
 
         double latitude = mMyLocation.getLatitude();

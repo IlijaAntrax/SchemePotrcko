@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Potrcko.iml" filepath="$PROJECT_DIR$/Potrcko.iml" />
+      <module fileurl="file://$PROJECT_DIR$/SchemePotrcko.iml" filepath="$PROJECT_DIR$/SchemePotrcko.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
