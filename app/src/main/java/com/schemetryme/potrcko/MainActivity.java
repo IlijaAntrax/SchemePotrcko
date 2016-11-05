@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity
     protected GoogleMap mGoogleMap;
     HashMap<String, Marker> markers = new HashMap<>();
 
-    Bus mBus = BusProvider.getInstance();
+    Bus mBus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +60,8 @@ public class MainActivity extends AppCompatActivity
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_map);
         mapFragment.getMapAsync(this);
+
+        mBus = BusProvider.getInstance();
 
         mMyLocation = getIntent().getParcelableExtra(LauncherActivity.KEY_LOCATION);
     }
@@ -131,7 +133,7 @@ public class MainActivity extends AppCompatActivity
                 MarkerOptions().position(LoadMyPosition()).title("start"));
         //googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
 
-        mBus.post(1);
+        mBus.post("string");
     }
 
     private LatLng LoadMyPosition() {
@@ -145,6 +147,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onLocationChanged (Location location){
+
         mBus.post(location);
     }
 
@@ -231,7 +234,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Subscribe
-    private void userDisconect(final String str){
+    public void userDisconect(final String str){
+        if(str.equals("string")) return;
         DefaultExecutorSupplier.getInstance().forLightWeightBackgroundTasks().execute(new Runnable() {
             @Override
             public void run() {

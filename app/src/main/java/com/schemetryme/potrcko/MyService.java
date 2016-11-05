@@ -26,7 +26,9 @@ public class MyService extends Service {
     protected Bus mBus = BusProvider.getInstance();
     private Socket mSocket;
 
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         try {
             mSocket = IO.socket(MyLocalService.URL);
         } catch (URISyntaxException e) {
@@ -40,6 +42,7 @@ public class MyService extends Service {
             mSocket.on("changeLocation", changeLocation);
             mSocket.on("diconected", onDisconect);
         }
+
         return Service.START_STICKY;
     }
 
@@ -48,6 +51,7 @@ public class MyService extends Service {
         // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
     }
+
 
     @Override
     public void onCreate(){
@@ -98,7 +102,7 @@ public class MyService extends Service {
     }
 
     @Subscribe
-    public void getLocatin(int num){
+    public void getLocatin(String s){
         mSocket.emit("allLocation");
     }
 

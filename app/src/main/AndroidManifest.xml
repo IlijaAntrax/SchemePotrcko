@@ -41,7 +41,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
 
         <service
-            android:name=".LocationService"
+            android:name=".MyService"
             android:enabled="true"
             android:exported="true"></service>
     </application>
