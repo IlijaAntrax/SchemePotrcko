@@ -8,6 +8,7 @@ import android.os.IBinder;
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.Socket;
 import com.github.nkzawa.socketio.client.IO;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.model.LatLng;
 import com.schemetryme.potrcko.LocalServices.MyLocalService;
@@ -22,7 +23,7 @@ import org.json.JSONObject;
 import java.net.URISyntaxException;
 
 
-public class MyService extends Service implements LocationSource.OnLocationChangedListener{
+public class MyService extends Service implements LocationListener {
 
     protected Bus mBus = BusProvider.getInstance();
     private Socket mSocket;
