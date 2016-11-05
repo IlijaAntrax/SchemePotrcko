@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,  LocationSource.OnLocationChangedListener{
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback{
 
     protected Location mMyLocation;
     protected GoogleMap mGoogleMap;
@@ -143,12 +143,6 @@ public class MainActivity extends AppCompatActivity
 
         LatLng myPosition = new LatLng(latitude, longitude);
         return myPosition;
-    }
-
-    @Override
-    public void onLocationChanged (Location location){
-
-        mBus.post(location);
     }
 
     @Override

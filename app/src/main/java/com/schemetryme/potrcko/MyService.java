@@ -8,6 +8,7 @@ import android.os.IBinder;
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.Socket;
 import com.github.nkzawa.socketio.client.IO;
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.model.LatLng;
 import com.schemetryme.potrcko.LocalServices.MyLocalService;
 import com.schemetryme.potrcko.ThreadPoolExecutor.DefaultExecutorSupplier;
@@ -21,7 +22,7 @@ import org.json.JSONObject;
 import java.net.URISyntaxException;
 
 
-public class MyService extends Service {
+public class MyService extends Service implements LocationSource.OnLocationChangedListener{
 
     protected Bus mBus = BusProvider.getInstance();
     private Socket mSocket;
@@ -60,7 +61,7 @@ public class MyService extends Service {
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         super.onDestroy();
         mBus.unregister(this);
         mSocket.emit("disconect");
@@ -92,9 +93,8 @@ public class MyService extends Service {
         return obj;
     }
 
-    @Subscribe
-    public void myLocation(Location location){
-
+    @Override
+    public void onLocationChanged (Location location){
         JSONObject obj = getData(new LatLng(location.getLatitude(), location.getLongitude()));
 
         if(obj != null)
