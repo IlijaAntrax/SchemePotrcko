@@ -33,12 +33,13 @@ public class MyService extends Service {
             mSocket = null;
         }
 
-        if(mSocket != null)
+        if(mSocket != null) {
             mSocket.connect();
 
-        mSocket.on("location", onLocations);
-        mSocket.on("changeLocation", changeLocation);
-        mSocket.on("diconected", onDisconect);
+            mSocket.on("location", onLocations);
+            mSocket.on("changeLocation", changeLocation);
+            mSocket.on("diconected", onDisconect);
+        }
         return Service.START_STICKY;
     }
 
@@ -60,6 +61,9 @@ public class MyService extends Service {
         mBus.unregister(this);
         mSocket.emit("disconect");
         mSocket.disconnect();
+        mSocket.off("location", onLocations);
+        mSocket.off("changeLocation", changeLocation);
+        mSocket.off("diconected", onDisconect);
     }
 
     private JSONObject getData(LatLng location){
