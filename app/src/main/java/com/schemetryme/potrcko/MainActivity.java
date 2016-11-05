@@ -18,14 +18,18 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.schemetryme.potrcko.ThreadPoolExecutor.DefaultExecutorSupplier;
 import com.schemetryme.potrcko.bus.BusProvider;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
@@ -33,6 +37,7 @@ public class MainActivity extends AppCompatActivity
 
     protected Location mMyLocation;
     protected GoogleMap mGoogleMap;
+    HashMap<String, Marker> markers = new HashMap<>();
 
     Bus mBus = BusProvider.getInstance();
 
@@ -156,17 +161,97 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Subscribe
-    public void setLocations(JSONArray locations){
+    public void setLocations(final JSONArray locations){
+
+        DefaultExecutorSupplier.getInstance().forLightWeightBackgroundTasks().execute(new Runnable() {
+            @Override
+            public void run() {
+                for(int i = 0; i < locations.length(); i++){
+                    try{
+                        final JSONObject obj = locations.getJSONObject(i);
+
+                        final MarkerOptions marker = new MarkerOptions()
+                                .position(new LatLng(new Double(obj.getString("latitude")), new Double(obj.getString("longitude"))))
+                                .title(obj.getString("username"));
+
+                        DefaultExecutorSupplier.getInstance().forMainThreadTasks().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    markers.put(obj.getString("mail"), mGoogleMap.addMarker(marker));
+                                }catch (Exception e){
+                                    e.getStackTrace();
+                                }
+                            }
+                        });
+
+
+                    }catch (JSONException e){
+                        e.getStackTrace();
+                    }
+                }
+            }
+        });
 
     }
 
     @Subscribe
-    public void setLocation(JSONObject location){
+    public void setLocation(final JSONObject obj){
+        DefaultExecutorSupplier.getInstance().forLightWeightBackgroundTasks().execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (markers.containsValue(obj.getString("mail"))) {
+                        final Marker m = markers.get(obj.getString("mail"));
+                        markers.remove(obj.getString("mail"));
+
+                        final MarkerOptions marker = new MarkerOptions()
+                                .position(new LatLng(new Double(obj.getString("latitude")), new Double(obj.getString("longitude"))))
+                                .title(obj.getString("username"));
+                        markers.put(obj.getString("mail"), m);
+                        DefaultExecutorSupplier.getInstance().forMainThreadTasks().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    m.remove();
+                                    markers.put(obj.getString("mail"),mGoogleMap.addMarker(marker));
+                                }catch (JSONException e){
+                                    e.getStackTrace();
+                                }
+                            }
+                        });
+
+                    }
+                }catch (JSONException e){
+                    e.getStackTrace();
+                }
+            }
+        });
 
     }
 
     @Subscribe
-    private void userDisconect(String str){
+    private void userDisconect(final String str){
+        DefaultExecutorSupplier.getInstance().forLightWeightBackgroundTasks().execute(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    JSONObject obj = new JSONObject(str);
+                    if(markers.containsValue(obj.getString("mail"))){
+                        final Marker m = markers.get(obj.getString("mail"));
+                        markers.remove(obj.getString("mail"));
+                        DefaultExecutorSupplier.getInstance().forMainThreadTasks().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                m.remove();
+                            }
+                        });
+                    }
+                }catch (JSONException e){
+                    e.getStackTrace();
+                }
+            }
+        });
 
     }
 }
