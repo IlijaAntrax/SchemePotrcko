@@ -13,16 +13,28 @@ import android.view.MenuItem;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.schemetryme.potrcko.bus.BusProvider;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,  LocationSource.OnLocationChangedListener{
 
     protected Location mMyLocation;
+    protected GoogleMap mGoogleMap;
+
+    Bus mBus = BusProvider.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +115,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
+        mGoogleMap = googleMap;
+
         CameraPosition position = new CameraPosition.Builder().
                 target(LoadMyPosition()).zoom(16).bearing(19).tilt(30).build();
         //_googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(position));
@@ -111,6 +125,8 @@ public class MainActivity extends AppCompatActivity
         googleMap.addMarker(new
                 MarkerOptions().position(LoadMyPosition()).title("start"));
         //googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+
+        mBus.post(1);
     }
 
     private LatLng LoadMyPosition() {
@@ -120,5 +136,37 @@ public class MainActivity extends AppCompatActivity
 
         LatLng myPosition = new LatLng(latitude, longitude);
         return myPosition;
+    }
+
+    @Override
+    public void onLocationChanged (Location location){
+        mBus.post(location);
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        mBus.register(this);
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        mBus.unregister(this);
+    }
+
+    @Subscribe
+    public void setLocations(JSONArray locations){
+
+    }
+
+    @Subscribe
+    public void setLocation(JSONObject location){
+
+    }
+
+    @Subscribe
+    private void userDisconect(String str){
+
     }
 }
