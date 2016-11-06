@@ -5,9 +5,8 @@ import android.content.Intent;
 
 import com.schemetryme.potrcko.LocalServices.MyLocalService;
 import com.schemetryme.potrcko.LocalServices.User;
+import com.schemetryme.potrcko.Services.MySocketService;
 import com.schemetryme.potrcko.ThreadPoolExecutor.DefaultExecutorSupplier;
-
-import java.lang.Thread;
 
 
 /**
@@ -30,7 +29,7 @@ public class PotrckoApplication extends Application {
         DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(new Runnable() {
             @Override
             public void run() {
-                startService(new Intent(getApplicationContext(), MyService.class));
+                startService(new Intent(getApplicationContext(), MySocketService.class));
             }
         });
 

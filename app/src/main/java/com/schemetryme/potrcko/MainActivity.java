@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity
 
     protected Location mMyLocation;
     protected GoogleMap mGoogleMap;
+    protected Marker mMyMarker = null;
     HashMap<String, Marker> markers = new HashMap<>();
 
     Bus mBus;
@@ -125,21 +126,20 @@ public class MainActivity extends AppCompatActivity
         mGoogleMap = googleMap;
 
         CameraPosition position = new CameraPosition.Builder().
-                target(LoadMyPosition()).zoom(16).bearing(19).tilt(30).build();
+                target(LoadMyPosition(mMyLocation)).zoom(16).bearing(19).tilt(30).build();
         //_googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(position));
 
         googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(position));
-        googleMap.addMarker(new
-                MarkerOptions().position(LoadMyPosition()).title("start"));
-        //googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
 
+        //googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        setMyLocation(mMyLocation);
         mBus.post("string");
     }
 
-    private LatLng LoadMyPosition() {
+    private LatLng LoadMyPosition(Location location) {
 
-        double latitude = mMyLocation.getLatitude();
-        double longitude = mMyLocation.getLongitude();
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
 
         LatLng myPosition = new LatLng(latitude, longitude);
         return myPosition;
@@ -155,6 +155,27 @@ public class MainActivity extends AppCompatActivity
     public void onPause(){
         super.onPause();
         mBus.unregister(this);
+    }
+
+    @Subscribe
+    public void setMyLocation(final Location location){
+
+        DefaultExecutorSupplier.getInstance().forLightWeightBackgroundTasks().execute(new Runnable() {
+            @Override
+            public void run() {
+                final MarkerOptions mo = new
+                        MarkerOptions().position(LoadMyPosition(location)).title("start");
+                DefaultExecutorSupplier.getInstance().forMainThreadTasks().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(mMyMarker != null)
+                            mMyMarker.remove();
+                        mMyMarker = mGoogleMap.addMarker(mo);
+                    }
+                });
+            }
+        });
+
     }
 
     @Subscribe
