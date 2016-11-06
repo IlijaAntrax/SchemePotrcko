@@ -48,17 +48,19 @@ public class User {
 
     public String toString(){
         try {
-            return new JSONObject().put("_id", _id)
-                    .put("firstname", this.firstname)
-                    .put("lastname",this.lastname)
-                    .put("email",this.email)
-                    .put("birthday",this.birtday)
-                    .put("reg_date",this.req_date)
-                    .put("mob_num",this.mob_num)
-                    .put("potrcko", this.potrcko)
-                    .put("busy", this.busy)
-                    .put("radius", this.radius)
-                    .toString();
+            JSONObject obj = new JSONObject();
+            obj.put("_id", _id);
+            obj.put("firstname", this.firstname);
+            obj.put("lastname",this.lastname);
+            obj.put("email",this.email);
+            obj.put("birthday",this.birtday);
+            obj.put("reg_date",this.req_date);
+            obj.put("mob_num",this.mob_num);
+            obj.put("potrcko", this.potrcko);
+            obj.put("busy", this.busy);
+            obj.put("radius", this.radius);
+            String ret = obj.toString();
+            return ret;
         }catch (Exception e){ }
         return null;
     }
