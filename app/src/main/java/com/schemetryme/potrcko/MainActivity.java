@@ -1,5 +1,6 @@
 package com.schemetryme.potrcko;
 
+import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -20,6 +21,8 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.schemetryme.potrcko.LocalServices.MyLocalService;
+import com.schemetryme.potrcko.Services.MySocketService;
 import com.schemetryme.potrcko.ThreadPoolExecutor.DefaultExecutorSupplier;
 import com.schemetryme.potrcko.bus.BusProvider;
 import com.squareup.otto.Bus;
@@ -133,6 +136,15 @@ public class MainActivity extends AppCompatActivity
 
         //googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
         setMyLocation(mMyLocation);
+
+        //Start location services
+        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(new Runnable() {
+            @Override
+            public void run() {
+                startService(new Intent(getApplicationContext(), MyLocalService.class));
+            }
+        });
+
         mBus.post("string");
     }
 
