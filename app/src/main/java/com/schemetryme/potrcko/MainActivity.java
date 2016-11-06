@@ -163,6 +163,7 @@ public class MainActivity extends AppCompatActivity
         DefaultExecutorSupplier.getInstance().forLightWeightBackgroundTasks().execute(new Runnable() {
             @Override
             public void run() {
+                mMyLocation = location;
                 final MarkerOptions mo = new
                         MarkerOptions().position(LoadMyPosition(location)).title("start");
                 DefaultExecutorSupplier.getInstance().forMainThreadTasks().execute(new Runnable() {
