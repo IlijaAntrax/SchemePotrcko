@@ -12,7 +12,6 @@ import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.schemetryme.potrcko.bus.BusProvider;
 import com.squareup.otto.Bus;
 
@@ -45,8 +44,8 @@ public class MyLocationService extends Service {
         //            float minDistance, => minimum distance between location updates, in meters
         //            LocationListener listener) => LocationListener
 
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 60000, 50, listener);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 60000, 50, listener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 6000, 5, listener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 6000, 5, listener);
 
         return Service.START_STICKY;
     }

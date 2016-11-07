@@ -73,13 +73,15 @@ public class User {
             this.firstname = obj.getString("firstname");
             this.lastname = obj.getString("lastname");
             this.email = obj.getString("email");
-            this.birtday = obj.getString("birtday");
+            this.birtday = obj.getString("birthday");
             this.req_date = obj.getString("reg_date");
             this.mob_num = obj.getString("mob_num");
             this.potrcko = obj.getBoolean("potrcko");
             this.busy = obj.getBoolean("busy");
             this.radius = obj.getDouble("radius");
-        }catch (Exception e){ }
+        }catch (Exception e){
+            e.getStackTrace();
+        }
     }
 
     public String get_id(){ return _id;}

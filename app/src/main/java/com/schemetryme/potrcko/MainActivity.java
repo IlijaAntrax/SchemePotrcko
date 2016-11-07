@@ -21,8 +21,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.schemetryme.potrcko.LocalServices.MyLocalService;
-import com.schemetryme.potrcko.Services.MySocketService;
+import com.schemetryme.potrcko.Services.MyLocationService;
 import com.schemetryme.potrcko.ThreadPoolExecutor.DefaultExecutorSupplier;
 import com.schemetryme.potrcko.bus.BusProvider;
 import com.squareup.otto.Bus;
@@ -141,7 +140,7 @@ public class MainActivity extends AppCompatActivity
         DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(new Runnable() {
             @Override
             public void run() {
-                startService(new Intent(getApplicationContext(), MyLocalService.class));
+                startService(new Intent(getApplicationContext(), MyLocationService.class));
             }
         });
 
