@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -29,6 +31,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.schemetryme.potrcko.Fragents.BottomFragment;
 import com.schemetryme.potrcko.SearchPlace.FetchUrl;
 import com.schemetryme.potrcko.SearchPlace.PlaceProvider;
 import com.schemetryme.potrcko.Services.MyLocationService;
@@ -53,6 +56,8 @@ public class MainActivity extends AppCompatActivity
     HashMap<String, Marker> markers = new HashMap<>();
 
     ArrayList<LatLng> MarkerPoints = new ArrayList<>();
+
+    private BottomFragment m_bottomFragment;
 
     Bus mBus;
 
@@ -79,6 +84,16 @@ public class MainActivity extends AppCompatActivity
         mBus = BusProvider.getInstance();
 
         mMyLocation = getIntent().getParcelableExtra(LauncherActivity.KEY_LOCATION);
+
+        m_bottomFragment = new BottomFragment();
+        FragmentManager manager=getSupportFragmentManager();
+        FragmentTransaction transaction=manager.beginTransaction();
+
+        //m_bottomFragment = (BottomFragment) getSupportFragmentManager().findFragmentById( R.id.fragment_bottom );
+
+        //getSupportFragmentManager().beginTransaction().hide( m_bottomFragment ).commit();
+
+        //transaction.add(R.id.fragment_bottom,m_bottomFragment, "Frag_Bottom_tag");
 
         handleIntent(getIntent());
     }
@@ -421,6 +436,11 @@ public class MainActivity extends AppCompatActivity
 
     public void drowDestinacion(PolylineOptions lineOptions){
         mGoogleMap.addPolyline(lineOptions);
+
+        getSupportFragmentManager()
+                .beginTransaction().setCustomAnimations(
+                R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom
+        ).show( m_bottomFragment ).commit();
     }
 
     public String makeURL (double sourcelat, double sourcelog, double destlat, double destlog ){
