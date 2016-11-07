@@ -95,6 +95,8 @@ public class MainActivity extends AppCompatActivity
 
         //transaction.add(R.id.fragment_bottom,m_bottomFragment, "Frag_Bottom_tag");
 
+        //transaction.commit();
+
         handleIntent(getIntent());
     }
 
