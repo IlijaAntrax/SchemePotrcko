@@ -58,6 +58,8 @@ public class MainActivity extends AppCompatActivity
     ArrayList<LatLng> MarkerPoints = new ArrayList<>();
 
     private BottomFragment m_bottomFragment;
+    FragmentManager manager;
+    FragmentTransaction transaction;
 
     Bus mBus;
 
@@ -85,9 +87,10 @@ public class MainActivity extends AppCompatActivity
 
         mMyLocation = getIntent().getParcelableExtra(LauncherActivity.KEY_LOCATION);
 
+        /*
         m_bottomFragment = new BottomFragment();
-        FragmentManager manager=getSupportFragmentManager();
-        FragmentTransaction transaction=manager.beginTransaction();
+        manager=getSupportFragmentManager();
+        transaction=manager.beginTransaction();
 
         //m_bottomFragment = (BottomFragment) getSupportFragmentManager().findFragmentById( R.id.fragment_bottom );
 
@@ -95,7 +98,10 @@ public class MainActivity extends AppCompatActivity
 
         //transaction.add(R.id.fragment_bottom,m_bottomFragment, "Frag_Bottom_tag");
 
+        manager.beginTransaction().hide(m_bottomFragment).commit();
+
         //transaction.commit();
+        */
 
         handleIntent(getIntent());
     }
@@ -439,10 +445,14 @@ public class MainActivity extends AppCompatActivity
     public void drowDestinacion(PolylineOptions lineOptions){
         mGoogleMap.addPolyline(lineOptions);
 
+        /*
         getSupportFragmentManager()
                 .beginTransaction().setCustomAnimations(
                 R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom
         ).show( m_bottomFragment ).commit();
+        */
+
+
     }
 
     public String makeURL (double sourcelat, double sourcelog, double destlat, double destlog ){
