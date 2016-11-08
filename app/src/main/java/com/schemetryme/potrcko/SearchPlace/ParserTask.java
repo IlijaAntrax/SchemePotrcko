@@ -19,7 +19,7 @@ import java.util.List;
 public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
 
     MainActivity activiry;
-
+    List<HashMap<String, String >> legs;
     public ParserTask(MainActivity activity) {
         this.activiry = activity;
     }
@@ -29,24 +29,39 @@ public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<Str
     protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
 
         JSONObject jObject;
-        List<List<HashMap<String, String>>> routes = null;
+        DataAdapter routes = null;
 
         try {
             jObject = new JSONObject(jsonData[0]);
-            Log.d("ParserTask", jsonData[0].toString());
+            //Log.d("ParserTask", jsonData[0].toString());
             DataParser parser = new DataParser();
-            Log.d("ParserTask", parser.toString());
+            //Log.d("ParserTask", parser.toString());
 
             // Starts parsing data
             routes = parser.parse(jObject);
-            Log.d("ParserTask", "Executing routes");
-            Log.d("ParserTask", routes.toString());
+            //Log.d("ParserTask", "Executing routes");
+            //Log.d("ParserTask", routes.toString());
 
         } catch (Exception e) {
-            Log.d("ParserTask", e.toString());
+            //Log.d("ParserTask", e.toString());
             e.printStackTrace();
         }
-        return routes;
+
+        legs = routes.getLegs();
+        return routes.getRoutes();
+    }
+
+    public class DataAdapter{
+        List<List<HashMap<String, String>>> routes;
+        List<HashMap<String, String>> legs;
+
+        public DataAdapter(List<List<HashMap<String, String>>> routes, List<HashMap<String, String>> legs){
+            this.routes = routes;
+            this.legs = legs;
+        }
+
+        public List<List<HashMap<String, String>>> getRoutes(){return routes;}
+        public List<HashMap<String, String>> getLegs(){return legs;}
     }
 
     public class DataParser {
@@ -54,9 +69,11 @@ public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<Str
         /**
          * Receives a JSONObject and returns a list of lists containing latitude and longitude
          */
-        public List<List<HashMap<String, String>>> parse(JSONObject jObject) {
+        public DataAdapter parse(JSONObject jObject) {
 
             List<List<HashMap<String, String>>> routes = new ArrayList<>();
+            List<HashMap<String, String>> distance = new ArrayList<>();
+
             JSONArray jRoutes;
             JSONArray jLegs;
             JSONArray jSteps;
@@ -68,14 +85,22 @@ public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<Str
                 /** Traversing all routes */
                 for (int i = 0; i < jRoutes.length(); i++) {
                     jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
+
                     List path = new ArrayList<>();
 
                     /** Traversing all legs */
                     for (int j = 0; j < jLegs.length(); j++) {
+
+                        HashMap<String, String> dd = new HashMap<>();
+                        dd.put("distance", (String) ((JSONObject) ((JSONObject) jLegs.get(j)).get("distance")).get("text"));
+                        dd.put("duration", (String) ((JSONObject) ((JSONObject) jLegs.get(j)).get("duration")).get("text"));
+                        distance.add(dd);
+
                         jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
 
                         /** Traversing all steps */
                         for (int k = 0; k < jSteps.length(); k++) {
+
                             String polyline = "";
                             polyline = (String) ((JSONObject) ((JSONObject) jSteps.get(k)).get("polyline")).get("points");
                             List<LatLng> list = decodePoly(polyline);
@@ -98,7 +123,7 @@ public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<Str
             }
 
 
-            return routes;
+            return new DataAdapter(routes, distance);
         }
 
 
@@ -145,12 +170,13 @@ public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<Str
     @Override
     protected void onPostExecute(List<List<HashMap<String, String>>> result) {
         ArrayList<LatLng> points;
-        PolylineOptions lineOptions = null;
+        List<PolylineOptions> lineOptions = new ArrayList<>();
 
         // Traversing through all the routes
+        // TODO: 11/8/2016 Razdvojiti rute
         for (int i = 0; i < result.size(); i++) {
             points = new ArrayList<>();
-            lineOptions = new PolylineOptions();
+            PolylineOptions line = new PolylineOptions();
 
             // Fetching i-th route
             List<HashMap<String, String>> path = result.get(i);
@@ -167,9 +193,11 @@ public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<Str
             }
 
             // Adding all the points in the route to LineOptions
-            lineOptions.addAll(points);
-            lineOptions.width(10);
-            lineOptions.color(Color.RED);
+            line.addAll(points);
+            line.width(10);
+            line.color(Color.RED);
+
+            lineOptions.add(line);
 
             Log.d("onPostExecute", "onPostExecute lineoptions decoded");
 
@@ -177,7 +205,7 @@ public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<Str
 
         // Drawing polyline in the Google Map for the i-th route
         if (lineOptions != null) {
-            activiry.drowDestinacion(lineOptions);
+            activiry.drowDestinacion(lineOptions, legs);
         } else {
             Log.d("onPostExecute", "without Polylines drawn");
         }

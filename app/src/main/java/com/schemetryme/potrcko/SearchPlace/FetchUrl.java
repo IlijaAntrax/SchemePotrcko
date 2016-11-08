@@ -75,11 +75,12 @@ import java.net.URL;
             }
 
             data = sb.toString();
-            Log.d("downloadUrl", data.toString());
+            //Log.d("downloadUrl", data.toString());
             br.close();
 
         } catch (Exception e) {
-            Log.d("Exception", e.toString());
+            //Log.d("Exception", e.toString());
+            e.getStackTrace();
         } finally {
             iStream.close();
             urlConnection.disconnect();

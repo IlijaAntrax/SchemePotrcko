@@ -22,11 +22,6 @@
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main_drawer" />
 
-    <!--fragment
-        android:id="@+id/fragment_bottom"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        android:name="com.schemetryme.potrcko.Fragents.BottomFragment"/-->
+
 
 </android.support.v4.widget.DrawerLayout>

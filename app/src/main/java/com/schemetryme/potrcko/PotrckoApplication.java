@@ -25,14 +25,5 @@ public class PotrckoApplication extends Application {
         if(!MyLocalService.getInstance().getLogin(this))
             MyLocalService.getInstance().setLogin(this, user, "token");
 
-
-        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(new Runnable() {
-            @Override
-            public void run() {
-                startService(new Intent(getApplicationContext(), MySocketService.class));
-            }
-        });
-
-
     }
 }

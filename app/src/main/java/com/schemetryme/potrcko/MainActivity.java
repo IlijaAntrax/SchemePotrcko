@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -19,8 +19,12 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.ListView;
 
-import com.google.android.gms.maps.CameraUpdate;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -30,11 +34,13 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.schemetryme.potrcko.Fragents.BottomFragment;
+import com.schemetryme.potrcko.ListAdapter.RouteAdapter;
 import com.schemetryme.potrcko.SearchPlace.FetchUrl;
 import com.schemetryme.potrcko.SearchPlace.PlaceProvider;
 import com.schemetryme.potrcko.Services.MyLocationService;
+import com.schemetryme.potrcko.Services.MySocketService;
 import com.schemetryme.potrcko.ThreadPoolExecutor.DefaultExecutorSupplier;
 import com.schemetryme.potrcko.bus.BusProvider;
 import com.squareup.otto.Bus;
@@ -46,6 +52,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, LoaderManager.LoaderCallbacks<Cursor> {
@@ -54,17 +61,21 @@ public class MainActivity extends AppCompatActivity
     protected GoogleMap mGoogleMap;
     protected Marker mMyMarker = null;
     HashMap<String, Marker> markers = new HashMap<>();
+    List<PolylineOptions> lineOptions;
 
     ArrayList<LatLng> MarkerPoints = new ArrayList<>();
+    ArrayList<LatLng> saveMarkerPoints = new ArrayList<>();
+    Polyline mPolyLine = null;
 
-    private BottomFragment m_bottomFragment;
-    FragmentManager manager;
-    FragmentTransaction transaction;
+    boolean startServices = true;
 
     Bus mBus;
 
+    BottomSheetBehavior bottomSheetBehavior;
+    Button sendRoute;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -87,24 +98,71 @@ public class MainActivity extends AppCompatActivity
 
         mMyLocation = getIntent().getParcelableExtra(LauncherActivity.KEY_LOCATION);
 
-        /*
-        m_bottomFragment = new BottomFragment();
-        manager=getSupportFragmentManager();
-        transaction=manager.beginTransaction();
+        View bottomSheet = findViewById(R.id.bottom_sheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
 
-        //m_bottomFragment = (BottomFragment) getSupportFragmentManager().findFragmentById( R.id.fragment_bottom );
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        serviceOption(startServices);
 
-        //getSupportFragmentManager().beginTransaction().hide( m_bottomFragment ).commit();
+        sendRoute = (Button) findViewById(R.id.btn_send_route);
+        sendRoute.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
-        //transaction.add(R.id.fragment_bottom,m_bottomFragment, "Frag_Bottom_tag");
+            }
+        });
 
-        manager.beginTransaction().hide(m_bottomFragment).commit();
+        bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
 
-        //transaction.commit();
-        */
+                if(newState == BottomSheetBehavior.STATE_HIDDEN){
+
+                    if(!startServices) {
+                        mGoogleMap.clear();
+                        startServices = true;
+                        serviceOption(startServices);
+                    }
+                }else{
+                    if(startServices) {
+                        startServices = false;
+                        serviceOption(startServices);
+                    }
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
 
         handleIntent(getIntent());
     }
+
+    public void serviceOption(boolean startService){
+        if(startService){
+            //Start location services
+            DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(new Runnable() {
+                @Override
+                public void run() {
+                    startService(new Intent(getApplicationContext(), MyLocationService.class));
+                }
+            });
+
+            //Strat socket service
+            DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(new Runnable() {
+                @Override
+                public void run() {
+                    startService(new Intent(getApplicationContext(), MySocketService.class));
+                }
+            });
+        }else{
+            stopService(new Intent(getApplication(), MyLocationService.class));
+            stopService(new Intent(getApplication(), MySocketService.class));
+        }
+    }
+
 
     @Override
     public void onBackPressed() {
@@ -173,13 +231,6 @@ public class MainActivity extends AppCompatActivity
         //googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
         setMyLocation(mMyLocation);
 
-        //Start location services
-        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(new Runnable() {
-            @Override
-            public void run() {
-                startService(new Intent(getApplicationContext(), MyLocationService.class));
-            }
-        });
 
         mBus.post("string");
     }
@@ -376,25 +427,20 @@ public class MainActivity extends AppCompatActivity
      }
 
     private void showLocations(Cursor c) {
-        MarkerOptions markerOptions = null;
         LatLng point = null;
-        mGoogleMap.clear();
+
+        if(MarkerPoints.size() == 0){
+            if(startServices) {
+                startServices = false;
+                serviceOption(startServices);
+            }
+            mGoogleMap.clear();
+        }
+
         while (c.moveToNext()) {
-            markerOptions = new MarkerOptions();
+
             point = new LatLng(Double.parseDouble(c.getString(1)), Double.parseDouble(c.getString(2)));
 
-            /*markerOptions.position(point);
-            markerOptions.title(c.getString(0));
-            mGoogleMap.addMarker(markerOptions);*/
-
-            // Already two locations
-            /*
-            if (MarkerPoints.size() > 1) {
-                MarkerPoints.clear();
-                mGoogleMap.clear();
-            }
-            */
-            // Adding new item to the ArrayList
             MarkerPoints.add(point);
 
             // Creating MarkerOptions
@@ -408,9 +454,13 @@ public class MainActivity extends AppCompatActivity
              * for the end location, the color of marker is RED.
              */
             if (MarkerPoints.size() == 1) {
+
                 options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+
             } else if (MarkerPoints.size() == 2) {
+
                 options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
             }
 
 
@@ -432,28 +482,48 @@ public class MainActivity extends AppCompatActivity
                 //move map camera
                 mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(origin));
                 mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+
+                saveMarkerPoints = MarkerPoints;
+                MarkerPoints.clear();
             }
         }
-        /*
-        if (point != null) {
-            CameraUpdate cameraPosition = CameraUpdateFactory.newLatLng(point);
-            mGoogleMap.animateCamera(cameraPosition);
+
+    }
+
+    public void drowDestinacion(final List<PolylineOptions> lineOptions, List<HashMap<String, String>> legs){
+
+
+        //mGoogleMap.addPolyline(lineOptions);
+        this.lineOptions = lineOptions;
+
+        RouteAdapter adapter = new RouteAdapter(this, legs);
+        ListView listView = (ListView) findViewById(R.id.lvRoutes);
+        listView.setAdapter(adapter);
+
+        if(mPolyLine != null){
+            mPolyLine.remove();
         }
-        */
+
+        mPolyLine = mGoogleMap.addPolyline(lineOptions.get(0));
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapter, View v, int position, long arg3)
+            {
+                if(mPolyLine != null){
+                    mPolyLine.remove();
+                }
+                mPolyLine = mGoogleMap.addPolyline(lineOptions.get(position));
+                v.setSelected(true);
+            }
+        });
+
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
+
     }
 
-    public void drowDestinacion(PolylineOptions lineOptions){
-        mGoogleMap.addPolyline(lineOptions);
-
-        /*
-        getSupportFragmentManager()
-                .beginTransaction().setCustomAnimations(
-                R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom
-        ).show( m_bottomFragment ).commit();
-        */
-
-
-    }
 
     public String makeURL (double sourcelat, double sourcelog, double destlat, double destlog ){
         StringBuilder urlString = new StringBuilder();

@@ -23,6 +23,10 @@
 
     <include layout="@layout/content_main" />
 
+    <include
+        android:id="@+id/bottom_sheet"
+        layout="@layout/bottomsheet_main" />
+
 
 
 </android.support.design.widget.CoordinatorLayout>
