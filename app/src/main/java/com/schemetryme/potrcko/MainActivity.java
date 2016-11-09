@@ -40,6 +40,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.schemetryme.potrcko.ListAdapter.RouteAdapter;
+import com.schemetryme.potrcko.LocalServices.Notifications;
 import com.schemetryme.potrcko.SearchPlace.FetchUrl;
 import com.schemetryme.potrcko.SearchPlace.PlaceProvider;
 import com.schemetryme.potrcko.Services.MyLocationService;
@@ -263,12 +264,14 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onResume(){
         super.onResume();
+        mBus.post(new Boolean(true));
         mBus.register(this);
     }
 
     @Override
     public void onPause(){
         super.onPause();
+        mBus.post(new Boolean(false));
         mBus.unregister(this);
     }
 
@@ -390,6 +393,11 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    @Subscribe
+    public void myNotifications(Notifications notifi){
+        List<JSONObject> notifications = notifi.getNotificationsList();
+    }
+
     private void handleIntent(Intent intent) {
         try {
             if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
@@ -416,11 +424,11 @@ public class MainActivity extends AppCompatActivity
         getSupportLoaderManager().restartLoader(0, data, this);
     }
 
-        private void getPlace(String query) {
-            Bundle data = new Bundle();
-            data.putString("query", query);
-            getSupportLoaderManager().restartLoader(1, data, this);
-        }
+    private void getPlace(String query) {
+        Bundle data = new Bundle();
+        data.putString("query", query);
+        getSupportLoaderManager().restartLoader(1, data, this);
+    }
 
     @Override
     public Loader<Cursor> onCreateLoader(int arg0, Bundle query) {
@@ -539,7 +547,6 @@ public class MainActivity extends AppCompatActivity
 
 
     }
-
 
     public String makeURL (double sourcelat, double sourcelog, double destlat, double destlog ){
         StringBuilder urlString = new StringBuilder();
