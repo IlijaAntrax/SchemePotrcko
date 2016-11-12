@@ -16,7 +16,7 @@ public class Notifications {
     public static final String MSG_ACCEPT = "Accept Job";
     public static final String MSG_RATE_ACCESS = "Rate Access";
     public static final String MSG_NEW_RATE = "New Rate";
-    public static final String MSG_START_LOCATION = "Strat Notification";
+    public static final String MSG_START_LOCATION = "Start Notification";
     public static final String MSG_END_LOCATION = "End Notification";
 
     List<JSONObject> notifications = new ArrayList<>();

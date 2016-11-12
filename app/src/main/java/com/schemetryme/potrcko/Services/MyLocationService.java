@@ -44,8 +44,8 @@ public class MyLocationService extends Service {
         //            float minDistance, => minimum distance between location updates, in meters
         //            LocationListener listener) => LocationListener
 
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 6000, 5, listener);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 6000, 5, listener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 9000, 0, listener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 9000, 0, listener);
 
         return Service.START_STICKY;
     }

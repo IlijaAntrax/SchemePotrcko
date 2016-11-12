@@ -77,7 +77,7 @@ public class MySocketService extends Service {
         mSocket.disconnect();
         mSocket.off("location", onLocations);
         mSocket.off("changeLocation", changeLocation);
-        mSocket.off("diconected", onDisconect);
+        mSocket.off("disconnect", onDisconect);
     }
 
     private JSONObject getData(LatLng location){
