@@ -1,0 +1,35 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TableRow>
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Distance"
+                android:padding="3dp" />
+            <TextView
+                android:id="@+id/route_distance"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:padding="3dp" />
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Duration"
+                android:padding="3dp" />
+            <TextView
+                android:id="@+id/route_duration"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:padding="3dp" />
+        </TableRow>
+    </TableLayout>
+</LinearLayout>

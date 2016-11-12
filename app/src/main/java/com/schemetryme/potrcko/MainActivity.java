@@ -1,25 +1,46 @@
 package com.schemetryme.potrcko;
 
+import android.app.SearchManager;
+import android.content.Intent;
+import android.database.Cursor;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.ListView;
+
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.schemetryme.potrcko.ListAdapter.RouteAdapter;
+import com.schemetryme.potrcko.SearchPlace.FetchUrl;
+import com.schemetryme.potrcko.SearchPlace.PlaceProvider;
+import com.schemetryme.potrcko.Services.MyLocationService;
+import com.schemetryme.potrcko.Services.MySocketService;
 import com.schemetryme.potrcko.ThreadPoolExecutor.DefaultExecutorSupplier;
 import com.schemetryme.potrcko.bus.BusProvider;
 import com.squareup.otto.Bus;
@@ -29,20 +50,32 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback{
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, LoaderManager.LoaderCallbacks<Cursor> {
 
     protected Location mMyLocation;
     protected GoogleMap mGoogleMap;
+    protected Marker mMyMarker = null;
     HashMap<String, Marker> markers = new HashMap<>();
+    List<PolylineOptions> lineOptions;
+
+    ArrayList<LatLng> MarkerPoints = new ArrayList<>();
+    ArrayList<LatLng> saveMarkerPoints = new ArrayList<>();
+    Polyline mPolyLine = null;
+
+    boolean startServices = true;
 
     Bus mBus;
 
+    BottomSheetBehavior bottomSheetBehavior;
+    Button sendRoute;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -64,7 +97,72 @@ public class MainActivity extends AppCompatActivity
         mBus = BusProvider.getInstance();
 
         mMyLocation = getIntent().getParcelableExtra(LauncherActivity.KEY_LOCATION);
+
+        View bottomSheet = findViewById(R.id.bottom_sheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        serviceOption(startServices);
+
+        sendRoute = (Button) findViewById(R.id.btn_send_route);
+        sendRoute.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+
+                if(newState == BottomSheetBehavior.STATE_HIDDEN){
+
+                    if(!startServices) {
+                        mGoogleMap.clear();
+                        startServices = true;
+                        serviceOption(startServices);
+                    }
+                }else{
+                    if(startServices) {
+                        startServices = false;
+                        serviceOption(startServices);
+                    }
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
+
+        handleIntent(getIntent());
     }
+
+    public void serviceOption(boolean startService){
+        if(startService){
+            //Start location services
+            DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(new Runnable() {
+                @Override
+                public void run() {
+                    startService(new Intent(getApplicationContext(), MyLocationService.class));
+                }
+            });
+
+            //Strat socket service
+            DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(new Runnable() {
+                @Override
+                public void run() {
+                    startService(new Intent(getApplicationContext(), MySocketService.class));
+                }
+            });
+        }else{
+            stopService(new Intent(getApplication(), MyLocationService.class));
+            stopService(new Intent(getApplication(), MySocketService.class));
+        }
+    }
+
 
     @Override
     public void onBackPressed() {
@@ -91,8 +189,8 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if (id == R.id.action_search) {
+            onSearchRequested();
         }
 
         return super.onOptionsItemSelected(item);
@@ -125,21 +223,22 @@ public class MainActivity extends AppCompatActivity
         mGoogleMap = googleMap;
 
         CameraPosition position = new CameraPosition.Builder().
-                target(LoadMyPosition()).zoom(16).bearing(19).tilt(30).build();
+                target(LoadMyPosition(mMyLocation)).zoom(16).bearing(19).tilt(30).build();
         //_googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(position));
 
         googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(position));
-        googleMap.addMarker(new
-                MarkerOptions().position(LoadMyPosition()).title("start"));
+
         //googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        setMyLocation(mMyLocation);
+
 
         mBus.post("string");
     }
 
-    private LatLng LoadMyPosition() {
+    private LatLng LoadMyPosition(Location location) {
 
-        double latitude = mMyLocation.getLatitude();
-        double longitude = mMyLocation.getLongitude();
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
 
         LatLng myPosition = new LatLng(latitude, longitude);
         return myPosition;
@@ -155,6 +254,28 @@ public class MainActivity extends AppCompatActivity
     public void onPause(){
         super.onPause();
         mBus.unregister(this);
+    }
+
+    @Subscribe
+    public void setMyLocation(final Location location){
+
+        DefaultExecutorSupplier.getInstance().forLightWeightBackgroundTasks().execute(new Runnable() {
+            @Override
+            public void run() {
+                mMyLocation = location;
+                final MarkerOptions mo = new
+                        MarkerOptions().position(LoadMyPosition(location)).title("start");
+                DefaultExecutorSupplier.getInstance().forMainThreadTasks().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(mMyMarker != null)
+                            mMyMarker.remove();
+                        mMyMarker = mGoogleMap.addMarker(mo);
+                    }
+                });
+            }
+        });
+
     }
 
     @Subscribe
@@ -251,5 +372,174 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+    }
+
+    private void handleIntent(Intent intent) {
+        try {
+            if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+                doSearch(intent.getStringExtra(SearchManager.QUERY));
+            } else if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+                getPlace(intent.getStringExtra(SearchManager.EXTRA_DATA_KEY));
+            }
+        }catch (Exception e){
+            e.getStackTrace();
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+
+    private void doSearch(String query) {
+        Bundle data = new Bundle();
+        data.putString("query", query);
+        getSupportLoaderManager().restartLoader(0, data, this);
+    }
+
+        private void getPlace(String query) {
+            Bundle data = new Bundle();
+            data.putString("query", query);
+            getSupportLoaderManager().restartLoader(1, data, this);
+        }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int arg0, Bundle query) {
+        CursorLoader cLoader = null;
+        if (arg0 == 0)
+            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.SEARCH_URI, null, null, new String[]{query.getString("query")}, null);
+        else if (arg0 == 1)
+            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.DETAILS_URI, null, null, new String[]{query.getString("query")}, null);
+        return cLoader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> arg0, Cursor c) {
+        showLocations(c);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> arg0) {
+        // TODO Auto-generated method stub
+     }
+
+    private void showLocations(Cursor c) {
+        LatLng point = null;
+
+        if(MarkerPoints.size() == 0){
+            if(startServices) {
+                startServices = false;
+                serviceOption(startServices);
+            }
+            mGoogleMap.clear();
+        }
+
+        while (c.moveToNext()) {
+
+            point = new LatLng(Double.parseDouble(c.getString(1)), Double.parseDouble(c.getString(2)));
+
+            MarkerPoints.add(point);
+
+            // Creating MarkerOptions
+            MarkerOptions options = new MarkerOptions();
+
+            // Setting the position of the marker
+            options.position(point);
+
+            /**
+             * For the start location, the color of marker is GREEN and
+             * for the end location, the color of marker is RED.
+             */
+            if (MarkerPoints.size() == 1) {
+
+                options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+
+            } else if (MarkerPoints.size() == 2) {
+
+                options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
+            }
+
+
+            // Add new marker to the Google Map Android API V2
+            mGoogleMap.addMarker(options);
+
+            // Checks, whether start and end locations are captured
+            if (MarkerPoints.size() >= 2) {
+                LatLng origin = MarkerPoints.get(0);
+                LatLng dest = MarkerPoints.get(1);
+
+                // Getting URL to the Google Directions API
+                String url = makeURL(origin.latitude, origin.longitude, dest.latitude, dest.longitude);
+                Log.d("onMapClick", url.toString());
+                FetchUrl FetchUrl = new FetchUrl(this);
+
+                // Start downloading json data from Google Directions API
+                FetchUrl.execute(url);
+                //move map camera
+                mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(origin));
+                mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+
+                saveMarkerPoints = MarkerPoints;
+                MarkerPoints.clear();
+            }
+        }
+
+    }
+
+    public void drowDestinacion(final List<PolylineOptions> lineOptions, List<HashMap<String, String>> legs){
+
+
+        //mGoogleMap.addPolyline(lineOptions);
+        this.lineOptions = lineOptions;
+
+        RouteAdapter adapter = new RouteAdapter(this, legs);
+        ListView listView = (ListView) findViewById(R.id.lvRoutes);
+        listView.setAdapter(adapter);
+
+        if(mPolyLine != null){
+            mPolyLine.remove();
+        }
+
+        mPolyLine = mGoogleMap.addPolyline(lineOptions.get(0));
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapter, View v, int position, long arg3)
+            {
+                if(mPolyLine != null){
+                    mPolyLine.remove();
+                }
+                mPolyLine = mGoogleMap.addPolyline(lineOptions.get(position));
+                v.setSelected(true);
+            }
+        });
+
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
+
+    }
+
+
+    public String makeURL (double sourcelat, double sourcelog, double destlat, double destlog ){
+        StringBuilder urlString = new StringBuilder();
+        urlString.append("https://maps.googleapis.com/maps/api/directions/json");
+        urlString.append("?origin=");// from
+        urlString.append(Double.toString(sourcelat));
+        urlString.append(",");
+        urlString
+                .append(Double.toString( sourcelog));
+        urlString.append("&destination=");// to
+        urlString
+                .append(Double.toString( destlat));
+        urlString.append(",");
+        urlString.append(Double.toString( destlog));
+        urlString.append("&sensor=false&mode=driving&alternatives=true");
+        urlString.append("&key=AIzaSyA1rRMJk1YzVzBZTvWNVYSqgZbWy68yYHg");
+        return urlString.toString();
     }
 }

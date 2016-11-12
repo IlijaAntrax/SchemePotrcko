@@ -1,14 +1,14 @@
-package com.schemetryme.potrcko;
+package com.schemetryme.potrcko.Services;
 
 import android.app.Service;
 import android.content.Intent;
 import android.location.Location;
 import android.os.IBinder;
 
+
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.Socket;
 import com.github.nkzawa.socketio.client.IO;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.model.LatLng;
 import com.schemetryme.potrcko.LocalServices.MyLocalService;
 import com.schemetryme.potrcko.ThreadPoolExecutor.DefaultExecutorSupplier;
@@ -17,12 +17,13 @@ import com.squareup.otto.Bus;
 import com.schemetryme.potrcko.bus.BusProvider;
 import com.squareup.otto.Subscribe;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 
 
-public class MyService extends Service implements LocationSource.OnLocationChangedListener{
+public class MySocketService extends Service {
 
     protected Bus mBus = BusProvider.getInstance();
     private Socket mSocket;
@@ -36,7 +37,7 @@ public class MyService extends Service implements LocationSource.OnLocationChang
             mSocket = null;
         }
 
-        if(mSocket != null) {
+        if (mSocket != null) {
             mSocket.connect();
 
             mSocket.on("location", onLocations);
@@ -49,8 +50,7 @@ public class MyService extends Service implements LocationSource.OnLocationChang
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return null;
     }
 
 
@@ -85,7 +85,11 @@ public class MyService extends Service implements LocationSource.OnLocationChang
             obj.put("busy", Boolean.toString(MyLocalService.getUser().getBusy()));
             obj.put("radius", Double.toString(MyLocalService.getUser().getRadius()));
 
-        }catch (Exception e){
+        }catch (JSONException e){
+            e.getStackTrace();
+            obj = null;
+        }
+        catch (Exception e){
             e.getStackTrace();
             obj = null;
         }
@@ -93,17 +97,18 @@ public class MyService extends Service implements LocationSource.OnLocationChang
         return obj;
     }
 
-    @Override
-    public void onLocationChanged (Location location){
-        JSONObject obj = getData(new LatLng(location.getLatitude(), location.getLongitude()));
-
-        if(obj != null)
-            mSocket.emit("changeLocation", obj.toString());
-    }
 
     @Subscribe
     public void getLocatin(String s){
         mSocket.emit("allLocation");
+    }
+
+    @Subscribe
+    public void changeLocation(Location location){
+        JSONObject obj = getData(new LatLng(location.getLatitude(), location.getLongitude()));
+
+        if(obj != null)
+            mSocket.emit("changeLocation", obj.toString());
     }
 
     private Emitter.Listener onLocations = new Emitter.Listener() {
@@ -148,4 +153,7 @@ public class MyService extends Service implements LocationSource.OnLocationChang
             });
         }
     };
+
+
+
 }
