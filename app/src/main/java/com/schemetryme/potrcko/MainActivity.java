@@ -13,16 +13,33 @@ import android.view.MenuItem;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.schemetryme.potrcko.ThreadPoolExecutor.DefaultExecutorSupplier;
+import com.schemetryme.potrcko.bus.BusProvider;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback{
 
     protected Location mMyLocation;
+    protected GoogleMap mGoogleMap;
+    HashMap<String, Marker> markers = new HashMap<>();
+
+    Bus mBus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +60,8 @@ public class MainActivity extends AppCompatActivity
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_map);
         mapFragment.getMapAsync(this);
+
+        mBus = BusProvider.getInstance();
 
         mMyLocation = getIntent().getParcelableExtra(LauncherActivity.KEY_LOCATION);
     }
@@ -103,6 +122,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
+        mGoogleMap = googleMap;
+
         CameraPosition position = new CameraPosition.Builder().
                 target(LoadMyPosition()).zoom(16).bearing(19).tilt(30).build();
         //_googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(position));
@@ -111,7 +132,10 @@ public class MainActivity extends AppCompatActivity
         googleMap.addMarker(new
                 MarkerOptions().position(LoadMyPosition()).title("start"));
         //googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+
+        mBus.post("string");
     }
+
     private LatLng LoadMyPosition() {
 
         double latitude = mMyLocation.getLatitude();
@@ -119,5 +143,113 @@ public class MainActivity extends AppCompatActivity
 
         LatLng myPosition = new LatLng(latitude, longitude);
         return myPosition;
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        mBus.register(this);
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        mBus.unregister(this);
+    }
+
+    @Subscribe
+    public void setLocations(final JSONArray locations){
+
+        DefaultExecutorSupplier.getInstance().forLightWeightBackgroundTasks().execute(new Runnable() {
+            @Override
+            public void run() {
+                for(int i = 0; i < locations.length(); i++){
+                    try{
+                        final JSONObject obj = locations.getJSONObject(i);
+
+                        final MarkerOptions marker = new MarkerOptions()
+                                .position(new LatLng(new Double(obj.getString("latitude")), new Double(obj.getString("longitude"))))
+                                .title(obj.getString("username"));
+
+                        DefaultExecutorSupplier.getInstance().forMainThreadTasks().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    markers.put(obj.getString("mail"), mGoogleMap.addMarker(marker));
+                                }catch (Exception e){
+                                    e.getStackTrace();
+                                }
+                            }
+                        });
+
+
+                    }catch (JSONException e){
+                        e.getStackTrace();
+                    }
+                }
+            }
+        });
+
+    }
+
+    @Subscribe
+    public void setLocation(final JSONObject obj){
+        DefaultExecutorSupplier.getInstance().forLightWeightBackgroundTasks().execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (markers.containsValue(obj.getString("mail"))) {
+                        final Marker m = markers.get(obj.getString("mail"));
+                        markers.remove(obj.getString("mail"));
+
+                        final MarkerOptions marker = new MarkerOptions()
+                                .position(new LatLng(new Double(obj.getString("latitude")), new Double(obj.getString("longitude"))))
+                                .title(obj.getString("username"));
+                        markers.put(obj.getString("mail"), m);
+                        DefaultExecutorSupplier.getInstance().forMainThreadTasks().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    m.remove();
+                                    markers.put(obj.getString("mail"),mGoogleMap.addMarker(marker));
+                                }catch (JSONException e){
+                                    e.getStackTrace();
+                                }
+                            }
+                        });
+
+                    }
+                }catch (JSONException e){
+                    e.getStackTrace();
+                }
+            }
+        });
+
+    }
+
+    @Subscribe
+    public void userDisconect(final String str){
+        if(str.equals("string")) return;
+        DefaultExecutorSupplier.getInstance().forLightWeightBackgroundTasks().execute(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    JSONObject obj = new JSONObject(str);
+                    if(markers.containsValue(obj.getString("mail"))){
+                        final Marker m = markers.get(obj.getString("mail"));
+                        markers.remove(obj.getString("mail"));
+                        DefaultExecutorSupplier.getInstance().forMainThreadTasks().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                m.remove();
+                            }
+                        });
+                    }
+                }catch (JSONException e){
+                    e.getStackTrace();
+                }
+            }
+        });
+
     }
 }
