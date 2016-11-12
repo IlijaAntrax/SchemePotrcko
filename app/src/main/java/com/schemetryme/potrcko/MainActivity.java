@@ -4,6 +4,8 @@ import android.app.SearchManager;
 import android.content.Intent;
 import android.database.Cursor;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
@@ -23,6 +25,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -102,13 +105,26 @@ public class MainActivity extends AppCompatActivity
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
 
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        serviceOption(startServices);
+
+        ConnectivityManager cm =
+                (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+
+        if(isConnected)
+            serviceOption(startServices);
+        else
+            Toast.makeText(this,"Please check your internet connection, " +
+                    "without internet applications will not work correctly.", Toast.LENGTH_SHORT);
+
 
         sendRoute = (Button) findViewById(R.id.btn_send_route);
         sendRoute.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                // TODO: 11/9/2016 Slanje likacije kuriru
             }
         });
 
