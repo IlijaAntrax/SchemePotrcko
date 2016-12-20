@@ -28,10 +28,12 @@ public class MyNotificationService extends Service {
     protected Bus mBus = BusProvider.getInstance();
     private boolean mIsInForegroundMode;
     private final static int MY_ID = 539;
+    public final static String msgType[] = {"notoficationFromClient", "dataFromRoute", "acceptJob", "haveRateAccess"};
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
+        
         return Service.START_NOT_STICKY;
     }
 

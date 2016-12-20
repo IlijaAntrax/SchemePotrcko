@@ -12,7 +12,7 @@ public class MyLocalService {
 
     public static final String PREF_USER_USER = "user";
     public static final String PREF_USER_TOKEN = "token";
-    public static final String URL = "http://192.168.1.3:3000/";
+    public static final String URL = "http://109.92.116.89:3000/";
 
     public static User user;
     public static String token;
