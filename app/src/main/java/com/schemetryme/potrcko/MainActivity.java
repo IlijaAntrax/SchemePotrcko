@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity
         boolean isConnected = activeNetwork != null &&
                 activeNetwork.isConnectedOrConnecting();
 
+
         if(isConnected)
             serviceOption(startServices);
         else
