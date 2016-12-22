@@ -28,7 +28,6 @@ public class MyNotificationService extends Service {
     protected Bus mBus = BusProvider.getInstance();
     private boolean mIsInForegroundMode;
     private final static int MY_ID = 539;
-    public final static String msgType[] = {"notoficationFromClient", "dataFromRoute", "acceptJob", "haveRateAccess"};
 
 
     @Override
@@ -84,7 +83,7 @@ public class MyNotificationService extends Service {
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.ic_search_map)
                         .setContentTitle(notificaion.getString("messageType"))
-                        .setContentText("")
+                        .setContentText(notificaion.getString("message"))
                         .setAutoCancel(true);
 
         Intent resultIntent = new Intent(this, MainActivity.class);
@@ -99,16 +98,12 @@ public class MyNotificationService extends Service {
                 JSONObject data = notificaion.getJSONObject("message");
                 b.putString("user", data.getJSONObject("fromUser").toString());
 
-
                 break;
             }
             case Notifications.MSG_ACCEPT : {
                 break;
             }
             case Notifications.MSG_END_LOCATION : {
-                break;
-            }
-            case Notifications.MSG_RATE_ACCESS : {
                 break;
             }
             case  Notifications.MSG_START_LOCATION : {
