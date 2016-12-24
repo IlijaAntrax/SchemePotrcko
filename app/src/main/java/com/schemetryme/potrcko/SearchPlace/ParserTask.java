@@ -6,7 +6,7 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.schemetryme.potrcko.MainActivity;
+import com.schemetryme.potrcko.activities.MainActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;

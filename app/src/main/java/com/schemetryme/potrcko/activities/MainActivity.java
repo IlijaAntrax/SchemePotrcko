@@ -1,4 +1,4 @@
-package com.schemetryme.potrcko;
+package com.schemetryme.potrcko.activities;
 
 import android.app.SearchManager;
 import android.content.Intent;
@@ -40,11 +40,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.schemetryme.potrcko.ListAdapter.RouteAdapter;
+import com.schemetryme.potrcko.LocalServices.User;
+import com.schemetryme.potrcko.R;
 import com.schemetryme.potrcko.SearchPlace.FetchUrl;
 import com.schemetryme.potrcko.SearchPlace.PlaceProvider;
 import com.schemetryme.potrcko.Services.MyLocationService;
 import com.schemetryme.potrcko.Services.MySocketService;
 import com.schemetryme.potrcko.ThreadPoolExecutor.DefaultExecutorSupplier;
+import com.schemetryme.potrcko.activities.LauncherActivity;
 import com.schemetryme.potrcko.bus.BusProvider;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
@@ -60,6 +63,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, LoaderManager.LoaderCallbacks<Cursor> {
 
+    protected User mUser;
     protected Location mMyLocation;
     protected GoogleMap mGoogleMap;
     protected Marker mMyMarker = null;
@@ -100,6 +104,7 @@ public class MainActivity extends AppCompatActivity
         mBus = BusProvider.getInstance();
 
         mMyLocation = getIntent().getParcelableExtra(LauncherActivity.KEY_LOCATION);
+        mUser = (User) getIntent().getSerializableExtra(LauncherActivity.CURRENT_USER);
 
         View bottomSheet = findViewById(R.id.bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);

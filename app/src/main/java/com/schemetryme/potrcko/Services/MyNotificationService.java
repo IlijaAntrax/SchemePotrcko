@@ -9,7 +9,7 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 
-import com.schemetryme.potrcko.MainActivity;
+import com.schemetryme.potrcko.activities.MainActivity;
 import com.schemetryme.potrcko.R;
 
 public class MyNotificationService extends Service {

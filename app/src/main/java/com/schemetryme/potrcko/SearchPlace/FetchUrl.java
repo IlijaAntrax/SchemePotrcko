@@ -3,7 +3,7 @@ package com.schemetryme.potrcko.SearchPlace;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.schemetryme.potrcko.MainActivity;
+import com.schemetryme.potrcko.activities.MainActivity;
 
 import java.io.BufferedReader;
 import java.io.IOException;

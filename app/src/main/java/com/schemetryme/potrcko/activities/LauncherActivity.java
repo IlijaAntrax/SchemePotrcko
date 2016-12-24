@@ -1,6 +1,8 @@
-package com.schemetryme.potrcko;
+package com.schemetryme.potrcko.activities;
 
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -24,6 +26,12 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.schemetryme.potrcko.LocalServices.MyLocalService;
+import com.schemetryme.potrcko.LocalServices.User;
+import com.schemetryme.potrcko.R;
+import com.schemetryme.potrcko.fragments.LoginFragment;
+
+import java.io.Serializable;
 
 public class LauncherActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
@@ -32,15 +40,22 @@ public class LauncherActivity extends AppCompatActivity implements
         LocationListener {
 
     public static final String KEY_LOCATION = "location";
+    public static final String CURRENT_USER = "user";
     protected static final int REQUEST_CHECK_SETTINGS = 5;
 
     protected GoogleApiClient mGoogleApiClient;
     protected LocationRequest mLocationRequest;
     protected Location mLocation;
 
+    private MyLocalService mMyLocalService;
+
     public static Intent createIntent(Context context) {
         Intent intent = new Intent(context, LauncherActivity.class);
         return intent;
+    }
+
+    public Location getmLocation() {
+        return mLocation;
     }
 
     @Override
@@ -166,10 +181,20 @@ public class LauncherActivity extends AppCompatActivity implements
         }
     }
     protected void startMainActivity(Location location) {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(KEY_LOCATION, location);
-        startActivity(intent);
-        finish();
+        if (mMyLocalService.getInstance().getLogin(this) == false) {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra(KEY_LOCATION, location);
+            intent.putExtra(CURRENT_USER, (Serializable) mMyLocalService.getInstance().getUser());
+            startActivity(intent);
+            finish();
+        } else {
+            //open login fragment and take data, no user
+            LoginFragment loginFragment = new LoginFragment();
+            FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+            fragmentTransaction.replace(R.id.fragment_container_login,loginFragment);
+            fragmentTransaction.commit();
+            //mMyLocalService.getInstance().setLogin(this, new User(), "USER_LOGIN");
+        }
     }
     protected void finishWithLocationNotAvailable() {
         Toast.makeText(this, "Location is not available, please try later", Toast.LENGTH_SHORT).show();
