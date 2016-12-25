@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drower_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
@@ -126,7 +126,10 @@ public class MainActivity extends AppCompatActivity
         sendRoute.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO: 11/9/2016 Slanje likacije kuriru
+                Intent intent = new Intent(MainActivity.this, SendRouteActivity.class);
+                //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                intent.putExtra("route", saveMarkerPoints);
+                startActivity(intent);
             }
         });
 
@@ -140,6 +143,7 @@ public class MainActivity extends AppCompatActivity
                         mGoogleMap.clear();
                         startServices = true;
                         serviceOption(startServices);
+                        saveMarkerPoints.clear();
                     }
                 }else{
                     if(startServices) {
@@ -184,7 +188,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drower_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -209,6 +213,7 @@ public class MainActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_search) {
             onSearchRequested();
+            Toast.makeText(this, "Find a start location.", Toast.LENGTH_SHORT);
         }
 
         return super.onOptionsItemSelected(item);
@@ -220,11 +225,7 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_search_places) {
-            // Handle the camera action
-        } else if (id == R.id.nav_search_users){
-
-        } else if (id == R.id.nav_profile) {
+        if (id == R.id.nav_profile) {
 
         } else if (id == R.id.nav_settings) {
 
@@ -232,7 +233,7 @@ public class MainActivity extends AppCompatActivity
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drower_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -451,7 +452,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onLoaderReset(Loader<Cursor> arg0) {
         // TODO Auto-generated method stub
-     }
+    }
 
     private void showLocations(Cursor c) {
         LatLng point = null;
@@ -483,10 +484,12 @@ public class MainActivity extends AppCompatActivity
             if (MarkerPoints.size() == 1) {
 
                 options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                Toast.makeText(getApplicationContext(), "Find a end location.", Toast.LENGTH_SHORT);
 
             } else if (MarkerPoints.size() == 2) {
 
                 options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                Toast.makeText(getApplicationContext(), "Search result.", Toast.LENGTH_SHORT);
 
             }
 

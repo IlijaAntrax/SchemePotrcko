@@ -14,4 +14,16 @@
     <string name="search_hint">Search Places</string>
     <string name="search_settings">Search Places</string>
 
+    <string name="dummy_text"> About drawer </string>
+
+    <string name="BackDropBottomSheetBehavior">com.schemetryme.potrcko.BottomSheet.BackdropBottomSheetBehavior</string>
+    <string name="BottomSheetBehaviorGoogleMapsLike">com.schemetryme.potrcko.BottomSheet.BottomSheetBehaviorGoogleMapsLike</string>
+    <string name="ScrollAwareFABBehavior">com.schemetryme.potrcko.BottomSheet.ScrollAwareFABBehavior</string>
+    <string name="MergedAppBarLayoutBehavior">com.schemetryme.potrcko.BottomSheet.MergedAppBarLayoutBehavior</string>
+    <string name="ScrollingAppBarLayoutBehavior">com.schemetryme.potrcko.BottomSheet.ScrollingAppBarLayoutBehavior</string>
+
+    <string name="key_binding_default_toolbar_name">Modal-Toolbar-Title</string>
+    <string name="title_activity_send_route">SendRouteActivity</string>
+
+
 </resources>
