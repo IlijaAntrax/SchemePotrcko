@@ -7,8 +7,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -20,12 +18,17 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.schemetryme.potrcko.BottomSheet.BottomSheetBehaviorGoogleMapsLike;
 import com.schemetryme.potrcko.BottomSheet.MergedAppBarLayoutBehavior;
-import com.schemetryme.potrcko.SearchPlace.PlaceProvider;
+import com.schemetryme.potrcko.LocalServices.MyLocalService;
+import com.schemetryme.potrcko.LocalServices.User;
+import com.schemetryme.potrcko.Search.User.Provider;
+import com.schemetryme.potrcko.Search.User.UserDetalisJSONProvider;
 
 public class SendRouteActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -38,7 +41,19 @@ public class SendRouteActivity extends AppCompatActivity implements LoaderManage
             R.drawable.cheese_3
     };
 
-    TextView bottomSheetTextView;
+    private BottomSheetBehaviorGoogleMapsLike behavior;
+
+    private TextView    _destination;
+    private TextView    _time;
+    private TextView    _distance;
+    private ImageButton _call;
+    private ImageButton _sms;
+    private ImageButton _mail;
+    private TextView    _firstname;
+    private TextView    _lastname;
+    private TextView    _email;
+    private ListView    _evauate_list;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +73,7 @@ public class SendRouteActivity extends AppCompatActivity implements LoaderManage
          */
         CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorlayout);
         View bottomSheet = coordinatorLayout.findViewById(R.id.bottom_sheet);
-        final BottomSheetBehaviorGoogleMapsLike behavior = BottomSheetBehaviorGoogleMapsLike.from(bottomSheet);
+        behavior = BottomSheetBehaviorGoogleMapsLike.from(bottomSheet);
         behavior.addBottomSheetCallback(new BottomSheetBehaviorGoogleMapsLike.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -91,7 +106,7 @@ public class SendRouteActivity extends AppCompatActivity implements LoaderManage
 
         AppBarLayout mergedAppBarLayout = (AppBarLayout) findViewById(R.id.merged_appbarlayout);
         MergedAppBarLayoutBehavior mergedAppBarLayoutBehavior = MergedAppBarLayoutBehavior.from(mergedAppBarLayout);
-        mergedAppBarLayoutBehavior.setToolbarTitle("Title Dummy");
+        mergedAppBarLayoutBehavior.setToolbarTitle("Destinacion");
         mergedAppBarLayoutBehavior.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -99,10 +114,28 @@ public class SendRouteActivity extends AppCompatActivity implements LoaderManage
             }
         });
 
-        bottomSheetTextView = (TextView) bottomSheet.findViewById(R.id.bottom_sheet_title);
-        ItemPagerAdapter adapter = new ItemPagerAdapter(this,mDrawables);
-        ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
-        viewPager.setAdapter(adapter);
+
+        handleIntent(getIntent());
+
+        defineBottomSheet();
+
+        Intent i = getIntent();
+        Bundle b = i.getBundleExtra("myLocation");
+
+
+    }
+
+    private void defineBottomSheet(){
+         _destination   = (TextView)    findViewById(R.id.bottom_sheet_desination);
+         _time          = (TextView)    findViewById(R.id.bottom_sheet_time);
+         _distance      = (TextView)    findViewById(R.id.bottom_sheet_distance);
+         _call          = (ImageButton) findViewById(R.id.bottom_sheet_button_call);
+         _sms           = (ImageButton) findViewById(R.id.bottom_sheet_button_sms);
+         _mail          = (ImageButton) findViewById(R.id.bottom_sheet_button_mail);
+        _firstname      = (TextView)    findViewById(R.id.bottom_sheet_fiestname);
+         _lastname      = (TextView)    findViewById(R.id.bottom_sheet_lastname);
+         _email         = (TextView)    findViewById(R.id.bottom_sheet_email);
+         _evauate_list  = (ListView)    findViewById(R.id.bottom_sheet_evaluate_list);
     }
 
     @Override
@@ -132,7 +165,7 @@ public class SendRouteActivity extends AppCompatActivity implements LoaderManage
             if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
                 doSearch(intent.getStringExtra(SearchManager.QUERY));
             } else if (Intent.ACTION_VIEW.equals(intent.getAction())) {
-                getPlace(intent.getStringExtra(SearchManager.EXTRA_DATA_KEY));
+                getUser(intent.getStringExtra(SearchManager.EXTRA_DATA_KEY));
             }
         }catch (Exception e){
             e.getStackTrace();
@@ -152,7 +185,7 @@ public class SendRouteActivity extends AppCompatActivity implements LoaderManage
         getSupportLoaderManager().restartLoader(0, data, this);
     }
 
-    private void getPlace(String query) {
+    private void getUser(String query) {
         Bundle data = new Bundle();
         data.putString("query", query);
         getSupportLoaderManager().restartLoader(1, data, this);
@@ -162,15 +195,15 @@ public class SendRouteActivity extends AppCompatActivity implements LoaderManage
     public Loader<Cursor> onCreateLoader(int arg0, Bundle query) {
         CursorLoader cLoader = null;
         if (arg0 == 0)
-            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.SEARCH_URI, null, null, new String[]{query.getString("query")}, null);
+            cLoader = new CursorLoader(getBaseContext(), Provider.SEARCH_URI, null, null, new String[]{query.getString("query")}, null);
         else if (arg0 == 1)
-            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.DETAILS_URI, null, null, new String[]{query.getString("query")}, null);
+            cLoader = new CursorLoader(getBaseContext(), Provider.DETAILS_URI, null, null, new String[]{query.getString("query")}, null);
         return cLoader;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> arg0, Cursor c) {
-        showLocations(c);
+        showUser(c);
     }
 
     @Override
@@ -178,7 +211,34 @@ public class SendRouteActivity extends AppCompatActivity implements LoaderManage
         // TODO Auto-generated method stub
     }
 
-    private void showLocations(Cursor c) {
+    private void showUser(Cursor c) {
+        UserDetalisJSONProvider parser = new UserDetalisJSONProvider();
+        User usr = null;
+        try {
+            if(c.moveToNext())
+                usr = parser.parse(c.getString(0));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
+        if(usr == null)
+            return;
+
+        setBottomSeetUser(usr);
     }
+
+    private void setBottomSeetUser(User usr){
+        _firstname.setText(usr.getLastname());
+        _lastname.setText(usr.getLastname());
+        _email.setText(usr.getEmail());
+
+        // TODO: 12/26/2016 Button listener and evaluate
+
+        behavior.setState(BottomSheetBehaviorGoogleMapsLike.STATE_EXPANDED);
+
+        ItemPagerAdapter adapter = new ItemPagerAdapter(this,mDrawables);
+        ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager.setAdapter(adapter);
+    }
+
 }

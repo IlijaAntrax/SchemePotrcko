@@ -81,8 +81,13 @@
             android:exported="true" />
 
         <provider
-            android:name=".SearchPlace.PlaceProvider"
-            android:authorities="com.schemetryme.potrcko.SearchPlace.PlaceProvider"
+            android:name=".Search.Place.Provider"
+            android:authorities="com.schemetryme.potrcko.Search.Place.Provider"
+            android:exported="false" />
+
+        <provider
+            android:name=".Search.User.Provider"
+            android:authorities="com.schemetryme.potrcko.Search.User.Provider"
             android:exported="false" />
 
         <receiver android:name=".NetworkStateReceiver">
@@ -102,7 +107,7 @@
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".SendRouteActivity"
+                android:value=".MainActivity"
                 />
 
             <intent-filter>
@@ -117,8 +122,10 @@
             <!-- Points to searchable meta data -->
             <meta-data
                 android:name="android.app.searchable"
-                android:resource="@xml/searchable" />
+                android:resource="@xml/searchableuser" />
         </activity>
+
+
     </application>
 
 </manifest>

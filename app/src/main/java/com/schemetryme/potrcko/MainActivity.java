@@ -41,8 +41,8 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.schemetryme.potrcko.ListAdapter.RouteAdapter;
 import com.schemetryme.potrcko.LocalServices.Notifications;
-import com.schemetryme.potrcko.SearchPlace.FetchUrl;
-import com.schemetryme.potrcko.SearchPlace.PlaceProvider;
+import com.schemetryme.potrcko.Search.Place.FetchUrl;
+import com.schemetryme.potrcko.Search.Place.Provider;
 import com.schemetryme.potrcko.Services.MyLocationService;
 import com.schemetryme.potrcko.Services.MySocketService;
 import com.schemetryme.potrcko.ThreadPoolExecutor.DefaultExecutorSupplier;
@@ -129,6 +129,12 @@ public class MainActivity extends AppCompatActivity
                 Intent intent = new Intent(MainActivity.this, SendRouteActivity.class);
                 //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 intent.putExtra("route", saveMarkerPoints);
+
+                Bundle bd = new Bundle();
+                bd.putDouble("lat", mMyMarker.getPosition().latitude);
+                bd.putDouble("lng", mMyMarker.getPosition().longitude);
+                intent.putExtra("myLocation", bd);
+
                 startActivity(intent);
             }
         });
@@ -438,9 +444,9 @@ public class MainActivity extends AppCompatActivity
     public Loader<Cursor> onCreateLoader(int arg0, Bundle query) {
         CursorLoader cLoader = null;
         if (arg0 == 0)
-            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.SEARCH_URI, null, null, new String[]{query.getString("query")}, null);
+            cLoader = new CursorLoader(getBaseContext(), Provider.SEARCH_URI, null, null, new String[]{query.getString("query")}, null);
         else if (arg0 == 1)
-            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.DETAILS_URI, null, null, new String[]{query.getString("query")}, null);
+            cLoader = new CursorLoader(getBaseContext(), Provider.DETAILS_URI, null, null, new String[]{query.getString("query")}, null);
         return cLoader;
     }
 

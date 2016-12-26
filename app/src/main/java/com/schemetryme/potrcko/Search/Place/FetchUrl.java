@@ -1,4 +1,4 @@
-package com.schemetryme.potrcko.SearchPlace;
+package com.schemetryme.potrcko.Search.Place;
 
 import android.os.AsyncTask;
 import android.util.Log;

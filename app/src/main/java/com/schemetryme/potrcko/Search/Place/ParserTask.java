@@ -1,4 +1,4 @@
-package com.schemetryme.potrcko.SearchPlace;
+package com.schemetryme.potrcko.Search.Place;
 
 import android.graphics.Color;
 import android.os.AsyncTask;

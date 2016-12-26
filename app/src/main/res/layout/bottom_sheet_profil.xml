@@ -23,29 +23,22 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/bottom_sheet_title"
+                android:id="@+id/bottom_sheet_desination"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ime"
+                android:text="Destinacion"
                 android:textColor="@android:color/white"
                 android:textSize="19sp"/>
 
             <TextView
-                android:id="@+id/bottom_sheet_subtitle"
+                android:id="@+id/bottom_sheet_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Prezime"
+                android:text="25min"
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
                 android:layout_marginTop="5dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Text dummy qwer asdf zxcv"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                android:layout_marginTop="5dp"/>
 
         </LinearLayout>
 
@@ -169,14 +162,29 @@
                 android:layout_height="48dp">
 
                 <TextView
-                    android:id="@+id/bottom_sheet_mobile"
+                    android:id="@+id/bottom_sheet_fiestname"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="061/111-11-11"
+                    android:text="Stefan"
                     android:layout_gravity="center_vertical"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:textAllCaps="false"
                     android:textColor="@android:color/black"/>
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Stankovic"
+                    android:layout_gravity="center_vertical"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:id="@+id/bottom_sheet_lastname" />
             </FrameLayout>
 
             <FrameLayout
@@ -191,7 +199,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:textAllCaps="false"
                     android:textColor="@android:color/black"
-                    android:id="@+id/bottom_sheet_emial" />
+                    android:id="@+id/bottom_sheet_email" />
             </FrameLayout>
 
         </LinearLayout>
