@@ -39,8 +39,12 @@ public class MySocketService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
+        IO.Options options = new IO.Options();
+        options.forceNew = true;
+        options.reconnection = true;
+
         try {
-            mSocket = IO.socket(MyLocalService.URL);
+            mSocket = IO.socket(MyLocalService.URL, options);
         } catch (URISyntaxException e) {
             mSocket = null;
         }

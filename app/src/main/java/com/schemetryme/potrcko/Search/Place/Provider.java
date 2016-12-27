@@ -1,4 +1,4 @@
-package com.schemetryme.potrcko.SearchPlace;
+package com.schemetryme.potrcko.Search.Place;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,10 +22,10 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.util.Log;
+
+public class Provider extends ContentProvider {
  
-public class PlaceProvider extends ContentProvider {
- 
-    public static final String AUTHORITY = "com.schemetryme.potrcko.SearchPlace.PlaceProvider";
+    public static final String AUTHORITY = "com.schemetryme.potrcko.Search.Place.Provider";
  
     public static final Uri SEARCH_URI = Uri.parse("content://"+AUTHORITY+"/search");
  
@@ -56,116 +56,117 @@ public class PlaceProvider extends ContentProvider {
  
         return uriMatcher;
     }
- 
+
+
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection,
-        String[] selectionArgs, String sortOrder) {
+    public Cursor query(Uri uri, String[] projection, String selection,String[] selectionArgs, String sortOrder) {
         Cursor c = null;
- 
+
         PlaceJSONParser parser = new PlaceJSONParser();
         PlaceDetailsJSONParser detailsParser = new PlaceDetailsJSONParser();
- 
+
         String jsonString = "";
         String jsonPlaceDetails = "";
- 
+
         List<HashMap<String, String>> list = null;
         List<HashMap<String, String>> detailsList = null;
- 
+
         MatrixCursor mCursor = null;
- 
+
         switch(mUriMatcher.match(uri)){
-        case SEARCH:
-            // Defining a cursor object with columns description, lat and lng
-            mCursor = new MatrixCursor(new String[] { "description","lat","lng" });
- 
-            // Create a parser object to parse places in JSON format
-            parser = new PlaceJSONParser();
- 
-            // Create a parser object to parse place details in JSON format
-            detailsParser = new PlaceDetailsJSONParser();
- 
-            // Get Places from Google Places API
-            jsonString = getPlaces(selectionArgs);
-            try {
-                // Parse the places ( JSON => List )
-                list = parser.parse(new JSONObject(jsonString));
- 
-                // Finding latitude and longitude for each places using Google Places Details API
-                for(int i=0;i<list.size();i++){
-                    HashMap<String, String> hMap = (HashMap<String, String>) list.get(i);
- 
-                    detailsParser =new PlaceDetailsJSONParser();
- 
-                    // Get Place details
-                    jsonPlaceDetails = getPlaceDetails(hMap.get("reference"));
- 
-                    // Parse the details ( JSON => List )
-                    detailsList = detailsParser.parse(new JSONObject(jsonPlaceDetails));
- 
-                    // Creating cursor object with places
-                    for(int j=0;j<detailsList.size();j++){
-                        HashMap<String, String> hMapDetails = detailsList.get(j);
- 
-                        // Adding place details to cursor
-                        mCursor.addRow(new String[]{ hMap.get("description") , hMapDetails.get("lat") , hMapDetails.get("lng") });
+            case SEARCH:
+                // Defining a cursor object with columns description, lat and lng
+                mCursor = new MatrixCursor(new String[] { "description","lat","lng" });
+
+                // Create a parser object to parse places in JSON format
+                parser = new PlaceJSONParser();
+
+                // Create a parser object to parse place details in JSON format
+                detailsParser = new PlaceDetailsJSONParser();
+
+                // Get Places from Google Places API
+                jsonString = getPlaces(selectionArgs);
+                try {
+                    // Parse the places ( JSON => List )
+                    list = parser.parse(new JSONObject(jsonString));
+
+                    // Finding latitude and longitude for each places using Google Places Details API
+                    for(int i=0;i<list.size();i++){
+                        HashMap<String, String> hMap = (HashMap<String, String>) list.get(i);
+
+                        detailsParser =new PlaceDetailsJSONParser();
+
+                        // Get Place details
+                        jsonPlaceDetails = getPlaceDetails(hMap.get("reference"));
+
+                        // Parse the details ( JSON => List )
+                        detailsList = detailsParser.parse(new JSONObject(jsonPlaceDetails));
+
+                        // Creating cursor object with places
+                        for(int j=0;j<detailsList.size();j++){
+                            HashMap<String, String> hMapDetails = detailsList.get(j);
+
+                            // Adding place details to cursor
+                            mCursor.addRow(new String[]{ hMap.get("description") , hMapDetails.get("lat") , hMapDetails.get("lng") });
+                        }
+
                     }
- 
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            c = mCursor;
-            break;
- 
-        case SUGGESTIONS :
- 
-            // Defining a cursor object with columns id, SUGGEST_COLUMN_TEXT_1, SUGGEST_COLUMN_INTENT_EXTRA_DATA
-            mCursor = new MatrixCursor(new String[] { "_id", SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_INTENT_EXTRA_DATA } );
- 
-            // Creating a parser object to parse places in JSON format
-            parser = new PlaceJSONParser();
- 
-            // Get Places from Google Places API
-            jsonString = getPlaces(selectionArgs);
- 
-            try {
-                // Parse the places ( JSON => List )
-                list = parser.parse(new JSONObject(jsonString));
- 
-                // Creating cursor object with places
-                for(int i=0;i<list.size();i++){
-                    HashMap<String, String> hMap = (HashMap<String, String>) list.get(i);
- 
-                    // Adding place details to cursor
-                    mCursor.addRow(new String[] { Integer.toString(i), hMap.get("description"), hMap.get("reference") });
+                c = mCursor;
+
+                break;
+
+            case SUGGESTIONS :
+
+                // Defining a cursor object with columns id, SUGGEST_COLUMN_TEXT_1, SUGGEST_COLUMN_INTENT_EXTRA_DATA
+                mCursor = new MatrixCursor(new String[] { "_id", SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_INTENT_EXTRA_DATA } );
+
+                // Creating a parser object to parse places in JSON format
+                parser = new PlaceJSONParser();
+
+                // Get Places from Google Places API
+                jsonString = getPlaces(selectionArgs);
+
+                try {
+                    // Parse the places ( JSON => List )
+                    list = parser.parse(new JSONObject(jsonString));
+
+                    // Creating cursor object with places
+                    for(int i=0;i<list.size();i++){
+                        HashMap<String, String> hMap = (HashMap<String, String>) list.get(i);
+
+                        // Adding place details to cursor
+                        mCursor.addRow(new String[] { Integer.toString(i), hMap.get("description"), hMap.get("reference") });
+                    }
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            c = mCursor;
-            break;
- 
-        case DETAILS :
-            // Defining a cursor object with columns description, lat and lng
-            mCursor = new MatrixCursor(new String[] { "description","lat","lng" });
- 
-            detailsParser = new PlaceDetailsJSONParser();
-            jsonPlaceDetails = getPlaceDetails(selectionArgs[0]);
-            try {
-                detailsList = detailsParser.parse(new JSONObject(jsonPlaceDetails));
-            } catch (JSONException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
- 
-            for(int j=0;j<detailsList.size();j++){
-                HashMap<String, String> hMapDetails = detailsList.get(j);
-                mCursor.addRow(new String[]{ hMapDetails.get("formatted_address") , hMapDetails.get("lat") , hMapDetails.get("lng") });
-            }
-            c = mCursor;
-            break;
+                c = mCursor;
+                break;
+
+            case DETAILS :
+                // Defining a cursor object with columns description, lat and lng
+                mCursor = new MatrixCursor(new String[] { "description","lat","lng" });
+
+                detailsParser = new PlaceDetailsJSONParser();
+                jsonPlaceDetails = getPlaceDetails(selectionArgs[0]);
+                try {
+                    detailsList = detailsParser.parse(new JSONObject(jsonPlaceDetails));
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+                for(int j=0;j<detailsList.size();j++){
+                    HashMap<String, String> hMapDetails = detailsList.get(j);
+                    mCursor.addRow(new String[]{ hMapDetails.get("formatted_address") , hMapDetails.get("lat") , hMapDetails.get("lng") });
+                }
+                c = mCursor;
+                break;
         }
         return c;
     }
@@ -232,7 +233,8 @@ public class PlaceProvider extends ContentProvider {
             br.close();
  
         }catch(Exception e){
-           Log.d("Exception while downloading url", e.toString());
+            e.getStackTrace();
+           //Log.d("Exception while downloading url", e.toString());
         }finally{
             iStream.close();
             urlConnection.disconnect();

@@ -4,7 +4,7 @@
     android:hint="@string/search_hint"
     android:searchSettingsDescription="@string/search_settings"
 
-    android:searchSuggestAuthority="com.schemetryme.potrcko.SearchPlace.PlaceProvider"
+    android:searchSuggestAuthority="com.schemetryme.potrcko.Search.Place.Provider"
     android:searchSuggestIntentAction="android.intent.action.VIEW"
     android:searchSuggestSelection=" ?"
     android:searchSuggestThreshold="2" >
