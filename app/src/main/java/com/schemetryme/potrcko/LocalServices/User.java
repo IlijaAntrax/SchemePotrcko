@@ -2,13 +2,14 @@ package com.schemetryme.potrcko.LocalServices;
 
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Created by Stefan on 11/5/2016.
  */
 
-public class User {
+public class User implements Serializable {
     private String _id;
     private String firstname;
     private String lastname;

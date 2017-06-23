@@ -9,7 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:gravity="center"
-    tools:context="com.schemetryme.potrcko.LauncherActivity">
+    tools:context="com.schemetryme.potrcko.activities.LauncherActivity">
     <ImageView
         android:id="@+id/logo"
         android:layout_width="wrap_content"
@@ -26,4 +26,9 @@
         android:layout_below="@+id/logo"
         android:indeterminate="true"
         />
+    <FrameLayout
+        android:id="@+id/fragment_container_login"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </FrameLayout>
 </RelativeLayout>

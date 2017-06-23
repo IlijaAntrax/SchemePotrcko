@@ -11,8 +11,12 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 
+<<<<<<< HEAD
 import com.schemetryme.potrcko.LocalServices.Notifications;
 import com.schemetryme.potrcko.MainActivity;
+=======
+import com.schemetryme.potrcko.activities.MainActivity;
+>>>>>>> login_and_signup
 import com.schemetryme.potrcko.R;
 import com.schemetryme.potrcko.bus.BusProvider;
 import com.squareup.otto.Bus;
